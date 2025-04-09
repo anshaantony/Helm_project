@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Frontend Service
+  frontend:
+    image: anshaantony22/frontend-image:v1  # Replace with your Docker Hub image name
+    container_name: frontend
+    build:
+      context: ./frontend  # Use the correct context if you are building the image
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html/static
+      - ./frontend/templates:/usr/share/nginx/html/templates
+    expose:
+      - "8080"
+    networks:
+      - app-network
+
+  # Backend Service
+  backend:
+    image: anshaantony22/backend-image:v1  # Replace with your Docker Hub image name
+    container_name: backend
+    environment:
+      - MONGO_URI=mongodb+srv://dbuser:dbUserPassword@flask.zvkal.mongodb.net/?retryWrites=true&w=majority&appName=flask
+    expose:
+      - "5000"  # Expose backend port
+    networks:
+      - app-network
+
+  # Nginx Service
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Mount the Nginx config
+    ports:
+      - "80:80"  # Map port 80 on host to port 80 in the container
+    depends_on:
+      - frontend
+      - backend  # Nginx needs to depend on frontend and backend services
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
